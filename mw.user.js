@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MapleStory Watch → Google Sheet
 // @namespace    https://github.com/rairig2021-lang
-// @version      1.1.1
+// @version      1.2.0
 // @match        https://maplestory.watch/market*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
@@ -14,7 +14,7 @@
 (function () {
   "use strict";
 
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbypfVJLDBgCbeletQnEwZ0Q1RHgJuZxhYol0SNTFsNjzyx-QYT4UHLbMeSHnliOYso2/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzd7XNJqYQ8JGFGhxwL_3eyYt43e1wCeFw0FFtWIXvR7tEohn175CZ1h4w5Ty9RGv-k1w/exec";
 
   function getRows() {
     const trs = [...document.querySelectorAll("tr[data-row]")];
