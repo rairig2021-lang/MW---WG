@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MapleStory Watch → Google Sheet
 // @namespace    https://github.com/rairig2021-lang
-// @version      1.0.1
+// @version      1.0.2
 // @match        https://maplestory.watch/market*
 // @grant        GM_xmlhttpRequest
 // @connect      script.google.com
@@ -30,26 +30,50 @@
     return r;
   }
 
-  async function sendToSheet(btn) {
-    btn.textContent = "Working...";
+   // Small message at the top of the screen (shows inside the popup if one is open)
+  function setStatus(text) {
+    console.log("[MW export]", text);
+    const host = document.querySelector("dialog[open], [role='dialog']") || document.body;
+    let el = document.getElementById("mw-export-toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "mw-export-toast";
+      el.style.cssText =
+        "position:fixed;top:16px;left:50%;transform:translateX(-50%);" +
+        "z-index:2147483647;padding:10px 14px;background:#2d6cdf;color:#fff;" +
+        "border-radius:8px;font-size:14px;pointer-events:none;";
+    }
+    if (el.parentNode !== host) host.appendChild(el);
+    el.textContent = text;
+    el.style.display = "block";
+    clearTimeout(el._t);
+    el._t = setTimeout(() => (el.style.display = "none"), 4000);
+  }
+
+  async function sendToSheet() {
+    setStatus("Working...");
     const rows = (await getRows()).map(addChannelRoom);
-    if (!rows.length) { btn.textContent = "No rows found"; return; }
+    if (!rows.length) { setStatus("No rows found"); return; }
 
     GM_xmlhttpRequest({
       method: "POST",
       url: WEB_APP_URL,
       data: JSON.stringify(rows),
       headers: { "Content-Type": "text/plain" },
-      onload: () => { btn.textContent = "Sent " + rows.length + " rows ✓"; },
-      onerror: () => { btn.textContent = "Failed ✗ (see console)"; }
+      onload: () => setStatus("Sent " + rows.length + " rows ✓"),
+      onerror: () => setStatus("Failed ✗ (see console)")
     });
   }
 
-  const btn = document.createElement("button");
-  btn.textContent = "Export to Sheet";
-  btn.style.cssText =
-    "position:fixed;bottom:16px;right:16px;z-index:99999;padding:10px 14px;" +
-    "background:#2d6cdf;color:#fff;border:0;border-radius:8px;cursor:pointer;font-size:14px;";
-  btn.onclick = () => sendToSheet(btn);
-  document.body.appendChild(btn);
+  // Way 1: Tampermonkey menu
+  GM_registerMenuCommand("Export to Sheet", sendToSheet);
+
+  // Way 2: keyboard shortcut Alt+Shift+S
+  window.addEventListener("keydown", (e) => {
+    if (e.altKey && e.shiftKey && !e.ctrlKey && e.code === "KeyS") {
+      e.preventDefault();
+      e.stopPropagation();
+      sendToSheet();
+    }
+  }, true);
 })();
